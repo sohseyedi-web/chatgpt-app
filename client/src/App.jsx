@@ -4,28 +4,71 @@ import ChatInput from "./components/ChatInput";
 import Messages from "./components/Messages";
 import Logo from "./assets/chat.svg";
 import User from "./assets/user.svg";
-
-let arr = [
-  { type: "user", post: "Hello World" },
-  { type: "bot", post: "Hello Aleik" },
-];
+import axios from "axios";
 
 function App() {
   const [posts, setPosts] = useState([]);
   const [input, setInput] = useState("");
 
-  const updatePosts = (post) => {
-    setPosts((prevPost) => {
-      return [...prevPost, { type: "user", post }];
-    });
+  const fetchBotMessage = async () => {
+    const { data } = await axios.post(
+      "http://localhost:4000",
+      { input },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return data;
   };
 
   const sendMessage = (e) => {
     e.preventDefault();
-
     if (!input || input.trim() === "") return;
     updatePosts(input);
+    updatePosts("input" , false);
     setInput("");
+    fetchBotMessage().then((res) => {
+      updatePosts(res.bot.trim(), true);
+    });
+  };
+
+  const autoTypeResponse = (text) => {
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        setPosts((prevPost) => {
+          let lastItem = prevPost.pop();
+          if (lastItem.type !== "bot") {
+            prevPost.push({
+              type: "bot",
+              post: text.charAt(index - 1),
+            });
+          } else {
+            prevPost.push({
+              type: "bot",
+              post: lastItem.post + text.charAt(index - 1),
+            });
+          }
+          return [...prevPost];
+        });
+        index++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 30);
+  };
+
+  const updatePosts = (post, isBot) => {
+    if (isBot) {
+      autoTypeResponse(post);
+    } else {
+      setPosts((prevPost) => {
+        return [...prevPost, { type: "user", post }];
+      });
+    }
   };
 
   return (
