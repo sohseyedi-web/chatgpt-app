@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as RiIcon from "react-icons/ri";
 import ChatInput from "./components/ChatInput";
 import Messages from "./components/Messages";
@@ -9,6 +9,11 @@ import axios from "axios";
 function App() {
   const [posts, setPosts] = useState([]);
   const [input, setInput] = useState("");
+
+  useEffect(() => {
+    document.querySelector(".layout").scrollTop =
+      document.querySelector(".layout").scrollHeight;
+  }, [posts]);
 
   const fetchBotMessage = async () => {
     const { data } = await axios.post(
@@ -28,7 +33,7 @@ function App() {
     e.preventDefault();
     if (!input || input.trim() === "") return;
     updatePosts(input);
-    updatePosts("input" , false);
+    updatePosts("loading...", false, true);
     setInput("");
     fetchBotMessage().then((res) => {
       updatePosts(res.bot.trim(), true);
@@ -61,49 +66,59 @@ function App() {
     }, 30);
   };
 
-  const updatePosts = (post, isBot) => {
+  const updatePosts = (post, isBot, isLoading) => {
     if (isBot) {
       autoTypeResponse(post);
     } else {
       setPosts((prevPost) => {
-        return [...prevPost, { type: "user", post }];
+        return [...prevPost, { type: isLoading ? "loading" : "user", post }];
       });
     }
   };
 
   return (
     <main className="relative">
-      <section className="w-[60%] mx-auto mt-5">
+      <section className="md:w-[60%] w-[95%] mx-auto mt-20  layout ">
         {posts.length === 0 && (
           <div className="pt-5">
+            <div className="h-8 w-8 mt-5 mx-auto text-white animate-bounce">
+              <RiIcon.RiArrowUpCircleLine size={23} />
+            </div>
             <p className="text-center text-white font-medium">
               برای شروع لطفا یک پیام بفرستید
             </p>
-            <div className="h-8 w-8 mt-5 mx-auto text-white animate-bounce">
-              <RiIcon.RiArrowDownCircleLine size={23} />
-            </div>
           </div>
         )}
         {posts.map((post, index) => (
           <>
-            <div className="flex gap-4 items-center" key={index}>
+            <div className="flex gap-4 items-center my-3" key={index}>
               <img
-                src={post.type === "bot" ? Logo : User}
+                src={
+                  post.type === "bot" || post.type === "loading" ? Logo : User
+                }
                 alt="user"
                 className="h-12 w-12 rounded-full flex-shrink-0"
               />
-              <div
-                className={`py-2 px-5 text-white w-fit rounded-2xl ${
-                  post.type === "bot" ? "bg-[#2b2b36]" : "bg-[#2540fc]"
-                }  whitespace-pre-wrap`}
-              >
-                {post.post}
-              </div>
+              {post.type === "loading" ? (
+                <span className="animate-ping text-white">
+                  <RiIcon.RiLoaderFill size={26} />
+                </span>
+              ) : (
+                <div
+                  className={`py-2 px-5 text-white w-fit rounded-2xl ${
+                    post.type === "bot" ? "bg-[#2b2b36]" : "bg-[#2540fc]"
+                  }  whitespace-pre-wrap`}
+                >
+                  {post.post}
+                </div>
+              )}
             </div>
           </>
         ))}
 
-        <div className={" fixed bottom-5 w-[40%] right-[32%]"}>
+        <div
+          className={" fixed top-5 md:w-[40%] w-[95%] md:right-[32%] right-2"}
+        >
           <form className={" bg-white rounded-lg"}>
             <input
               type="text"
@@ -121,27 +136,31 @@ function App() {
           </form>
         </div>
       </section>
-      <div className="fixed top-1/3 left-0 flex flex-col bg-slate-100 rounded-r-lg md:p-1">
+      <div className="md:fixed hidden md:top-1/3 top-0 md:left-0 md:flex md:flex-col bg-slate-100 rounded-r-lg md:p-1">
         <a
-          href="/"
+          href="https://github.com/sohseyedi-web"
+          target={"_blank"}
           className="mb-3 transition-all hover:text-[#0f9e7b] hover:transition-all"
         >
           <RiIcon.RiGithubLine size={24} />
         </a>
         <a
-          href="/"
+          href="https://www.linkedin.com/in/sohseyedi"
+          target={"_blank"}
           className="mb-3 transition-all hover:text-[#0f9e7b] hover:transition-all"
         >
           <RiIcon.RiLinkedinLine size={24} />
         </a>
         <a
           href="/"
+          target={"_blank"}
           className="mb-3 transition-all hover:text-[#0f9e7b] hover:transition-all"
         >
           <RiIcon.RiTwitterLine size={24} />
         </a>
         <a
-          href="/"
+          href="https://mahak-charity.org/online-payment/"
+          target={"_blank"}
           className="mb-3 transition-all hover:text-[#0f9e7b] hover:transition-all"
         >
           <RiIcon.RiHandHeartLine size={24} />
