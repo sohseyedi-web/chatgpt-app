@@ -17,7 +17,7 @@ function App() {
 
   const fetchBotMessage = async () => {
     const { data } = await axios.post(
-      "http://localhost:4000",
+      "https://chat-app-api-tuua.onrender.com",
       { input },
       {
         headers: {
